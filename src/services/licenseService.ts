@@ -10,7 +10,7 @@ const STORAGE_KEYS = {
 };
 
 // Admin credentials (hashed for basic security)
-const ADMIN_PASSWORD_HASH = btoa('adminTung@123');
+const ADMIN_PASSWORD_HASH = btoa('AdminTung@123');
 
 export interface LicenseKey {
   key: string;

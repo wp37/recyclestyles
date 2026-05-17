@@ -13,14 +13,20 @@ import StudioModule from './pages/StudioModule';
 import SeoModule from './pages/SeoModule';
 import AdminModule from './pages/AdminModule';
 
+// Detect if URL path is /admin
+function isAdminRoute(): boolean {
+  return window.location.pathname.toLowerCase().startsWith('/admin');
+}
+
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabId>('spy');
+  const [activeTab, setActiveTab] = useState<TabId>(() => isAdminRoute() ? 'admin' : 'spy');
   const [showConfig, setShowConfig] = useState(false);
   const [uiLang, setUiLang] = useState<'vi' | 'en'>('vi');
   const [keyCount, setKeyCount] = useState(0);
   const [scriptSegments, setScriptSegments] = useState<any[]>([]);
   const [strategyTopic, setStrategyTopic] = useState('');
   const [licensed, setLicensed] = useState(false);
+  const [isStandalone] = useState(() => isAdminRoute());
 
   useEffect(() => {
     loadApiConfig();
@@ -28,6 +34,24 @@ const App: React.FC = () => {
     // Check license on load
     const lic = getCurrentLicense();
     setLicensed(lic.valid);
+  }, []);
+
+  // Update URL when switching tabs
+  useEffect(() => {
+    if (activeTab === 'admin' && !isAdminRoute()) {
+      window.history.pushState({}, '', '/admin');
+    } else if (activeTab !== 'admin' && isAdminRoute()) {
+      window.history.pushState({}, '', '/');
+    }
+  }, [activeTab]);
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveTab(isAdminRoute() ? 'admin' : 'spy');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const handleConfigClose = () => {
@@ -49,6 +73,16 @@ const App: React.FC = () => {
     setLicensed(true);
     if (!hasAnyApiKey()) setShowConfig(true);
   };
+
+  // === STANDALONE ADMIN MODE (accessed via /admin URL) ===
+  if (isStandalone) {
+    return (
+      <>
+        <AdminModule standalone={true} />
+        <ToastContainer />
+      </>
+    );
+  }
 
   // === LICENSE GATE — Block access if not licensed (admin tab always accessible) ===
   if (!licensed && activeTab !== 'admin') {
