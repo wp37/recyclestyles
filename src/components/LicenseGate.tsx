@@ -11,10 +11,9 @@ const BANK_INFO = {
 };
 
 const PLANS = [
-  { plan: 'trial', price: 'Miễn phí', priceNum: 0, duration: '7 ngày' },
-  { plan: 'monthly', price: '199K', priceNum: 199000, duration: '30 ngày' },
-  { plan: 'yearly', price: '999K', priceNum: 999000, duration: '365 ngày' },
-  { plan: 'lifetime', price: '1.999K', priceNum: 1999000, duration: 'Trọn đời' },
+  { plan: 'trial', price: 'Miễn phí', priceNum: 0, duration: '1 ngày' },
+  { plan: 'yearly', price: '149K', priceNum: 149000, duration: '365 ngày' },
+  { plan: 'lifetime', price: '399K', priceNum: 399000, duration: 'Trọn đời' },
 ];
 
 interface Props {

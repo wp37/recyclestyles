@@ -103,10 +103,9 @@ const AdminModule: React.FC = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
           <select value={newPlan} onChange={e => setNewPlan(e.target.value as any)} className="bg-black border border-white/10 rounded-lg p-3 text-sm text-white outline-none cursor-pointer">
-            <option value="trial">🆓 Dùng thử (7 ngày)</option>
-            <option value="monthly">💎 PRO Tháng (30 ngày)</option>
-            <option value="yearly">👑 GOLD Năm (365 ngày)</option>
-            <option value="lifetime">🏆 VIP Trọn đời</option>
+            <option value="trial">🆓 Dùng thử (1 ngày)</option>
+            <option value="yearly">👑 Gói Năm — 149K (365 ngày)</option>
+            <option value="lifetime">🏆 VIP Trọn đời — 399K</option>
           </select>
           <input value={newNote} onChange={e => setNewNote(e.target.value)} placeholder="Ghi chú (tùy chọn)" className="bg-black border border-white/10 rounded-lg p-3 text-sm text-white outline-none focus:border-green-500/50" />
         </div>

@@ -65,11 +65,10 @@ function generateKeyString(plan: string): string {
 
 function getPlanDays(plan: string): number {
   switch (plan) {
-    case 'trial': return 7;
-    case 'monthly': return 30;
+    case 'trial': return 1;
     case 'yearly': return 365;
     case 'lifetime': return 36500; // ~100 years
-    default: return 7;
+    default: return 1;
   }
 }
 
@@ -166,9 +165,8 @@ export function deactivateUserLicense(): void {
 
 export function getPlanLabel(plan: string): { label: string; color: string; icon: string } {
   switch (plan) {
-    case 'trial': return { label: 'Dùng thử 7 ngày', color: 'text-slate-400', icon: '🆓' };
-    case 'monthly': return { label: 'PRO Tháng', color: 'text-blue-400', icon: '💎' };
-    case 'yearly': return { label: 'GOLD Năm', color: 'text-amber-400', icon: '👑' };
+    case 'trial': return { label: 'Dùng thử 1 ngày', color: 'text-slate-400', icon: '🆓' };
+    case 'yearly': return { label: 'Gói Năm', color: 'text-amber-400', icon: '👑' };
     case 'lifetime': return { label: 'VIP Trọn đời', color: 'text-purple-400', icon: '🏆' };
     default: return { label: plan, color: 'text-white', icon: '📋' };
   }
