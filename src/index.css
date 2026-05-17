@@ -1,0 +1,44 @@
+/* =====================================================
+   RECYCLE STYLES MASTER — Design System
+   Emerald Eco-Craft Theme
+   ===================================================== */
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #050a08; }
+::-webkit-scrollbar-thumb { background: #1b4e3b; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #2d7a5d; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+body {
+  background-color: #050a08;
+  color: #e0f2e7;
+  background-image: radial-gradient(ellipse at top, rgba(5, 150, 105, 0.15), #050a08 60%, #050a08);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Selection */
+::selection {
+  background: rgba(16, 185, 129, 0.3);
+}
+
+/* Spinner */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Pulse glow for key icon */
+@keyframes pulseGlow {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(16,185,129,0.4)); }
+  50% { filter: drop-shadow(0 0 8px rgba(16,185,129,0.8)); }
+}
+.pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}

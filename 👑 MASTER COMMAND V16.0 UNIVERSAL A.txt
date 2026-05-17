@@ -1,0 +1,34 @@
+👑 MASTER COMMAND V16.0: UNIVERSAL AUDIO RE-ENGINEERING
+CHỈ THỊ TỪ CHIEF ARCHITECT (LỆNH TINH CHỈNH ĐỘC LẬP & BẢO TOÀN NGUYÊN TRẠNG):
+"Yêu cầu thực hiện hiệu chỉnh duy nhất phần Thanh âm cho [Cảnh 1 đến Cảnh N]. Hệ thống phải vận hành theo cơ chế 'Phong tỏa Tham số - Tái cấu trúc Hồn'."
+
+🛑 1. NGUYÊN TẮC PHONG TỎA TUYỆT ĐỐI (UNIVERSAL PRESERVATION)
+GIỮ NGUYÊN 100%: Toàn bộ tiêu đề đề mục và nội dung dữ liệu của TẤT CẢ CÁC MỤC KHÔNG LIÊN QUAN ĐẾN THANH ÂM.
+
+YÊU CẦU: Dù kịch bản hiện tại gồm những thành phần nào (Kỹ thuật, Diễn biến, Prompt, SEO, Vật liệu, v.v.), AI phải sao chép lại y hệt, không thiếu một ký tự, không thay đổi một dấu phẩy. Tuyệt đối không được tóm tắt hay lược bỏ bất kỳ thông tin nào đã có sẵn trong kịch bản gốc.
+
+🎙️ 2. CHỈ THỊ THANH ÂM THIẾT QUÂN LUẬT (HARDCODED AUDIO)
+Chỉ thực hiện thay đổi nội dung của 3 thành phần thanh âm cốt lõi theo quy tắc thép:
+
+Nguyên tắc Độc tôn (100% Single Voice): * Trong 8 giây của mỗi phân cảnh, CHỈ DUY NHẤT 01 CHỦ THỂ ĐƯỢC PHÉP CẤT TIẾNG. * Cấm tuyệt đối hội thoại chồng lấn. Nếu kịch bản gốc có nhiều người nói, AI bắt buộc phải lọc lại để chỉ còn một tiếng nói duy nhất (nhân vật hoặc người dẫn chuyện) phù hợp với ngữ cảnh điểm chạm của cảnh đó.
+
+Bản đồ Thanh âm Thích ứng (Adaptive Blueprint): Mô tả giọng điệu phải khớp 100% với Ngữ cảnh/Ngách nội dung của kịch bản hiện tại. Phải định danh đủ:
+
+Chất giọng (Timbre): (Mô tả đặc tính vật lý của giọng).
+
+Giọng điệu (Tone): (Mô tả cảm xúc chủ đạo).
+
+Nhịp điệu (Pacing): (Mô tả tốc độ và các điểm ngắt nghỉ bằng dấu '...').
+
+Vị trí (State): Xác định rõ ON-SCREEN hay OFF-SCREEN.
+
+Lời thoại Nội lực: * Viết lại lời thoại súc tích, mang đậm bản sắc nhân vật trong ngữ cảnh đó.
+
+Dung lượng: Tuyệt đối <40 từ. Lời thoại phải sâu sắc, không rườm rà.
+
+📝 3. ĐỊNH DẠNG ĐẦU RA PHỔ QUÁT (MASTER OUTPUT)
+Xuất bản lại toàn bộ kịch bản theo cấu trúc thẳng đứng. Với mỗi cảnh, trình bày theo thứ tự:
+
+Thanh âm mới: (Người nói, Hồ sơ thanh âm, Lời thoại) - Đã được tinh chỉnh.
+
+Dữ liệu cũ: Toàn bộ các mục thông tin còn lại của kịch bản gốc - Phải sao chép lại nguyên trạng 100%.
