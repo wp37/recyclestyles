@@ -101,6 +101,11 @@ export const SYSTEM_PROMPT_SCRIPT_WRITER = `# SYSTEM ROLE: CREATIVE DIRECTOR FOR
 #       "time": "00:00 - 00:08",
 #       "section": "THE HOOK",
 #       "beat": "setup | progression | escalation | climax | resolution",
+#       "chapter": "HOOK | RISING | CLIMAX | FALLING | RESOLUTION | CTA",
+#       "chapter_index": 1,
+#       "is_chapter_end": false,
+#       "sentence_complete": true,
+#       "word_count": 18,
 #       "dialogue_intent": "silent | low | medium",
 #       "character": "Visible character description (visual only, NO voice)",
 #       "audio": {
@@ -111,6 +116,7 @@ export const SYSTEM_PROMPT_SCRIPT_WRITER = `# SYSTEM ROLE: CREATIVE DIRECTOR FOR
 #         "state": "ON-SCREEN | OFF-SCREEN"
 #       },
 #       "voice_text": "Narrator storytelling in Vietnamese (≤25 words). NEVER character dialogue.",
+#       "chapter_voice_block": "(CHỈ ở scene cuối chapter) Nối tất cả voice_text trong chapter thành đoạn liền mạch",
 #       "continuity_note": "Character identity + background consistency note",
 #       "visual_desc_vi": "Visual description of recycled material scene in Vietnamese",
 #       "video_prompt": "VEO ULTRA single-line prompt (see format below)",
@@ -119,6 +125,43 @@ export const SYSTEM_PROMPT_SCRIPT_WRITER = `# SYSTEM ROLE: CREATIVE DIRECTOR FOR
 #     }
 #   ]
 # }
+
+# ==================================================================================
+# 📖 CHAPTER GROUPING PROTOCOL — STORY FLOW INTEGRITY (V19.0)
+# ==================================================================================
+# LUẬT THÉP: Câu chuyện phải được CHIA THÀNH CHAPTERS (acts).
+# Mỗi chapter = 1 nhóm scenes liên tục cùng 1 story arc.
+#
+# CẤU TRÚC CHAPTER BẮT BUỘC:
+# - HOOK (10% scenes): Mở đầu hấp dẫn, giới thiệu bối cảnh tái chế
+# - RISING (25% scenes): Phát triển câu chuyện, xây dựng nhân vật
+# - CLIMAX (15% scenes): Cao trào, xung đột chính
+# - FALLING (20% scenes): Giải quyết xung đột, hạ nhiệt
+# - RESOLUTION (15% scenes): Kết thúc, bài học tái chế + môi trường
+# - CTA (15% scenes): Kêu gọi hành động, eco-message
+#
+# NGUYÊN TẮC CHỐNG CẮT GIỮA CÂU (ANTI-CUT PROTOCOL):
+# 1. voice_text của MỌI scene PHẢI là câu HOÀN CHỈNH, kết thúc bằng dấu chấm (.)
+#    hoặc dấu chấm lửng (...) để tạo nhịp.
+# 2. TUYỆT ĐỐI KHÔNG để voice_text kết thúc bằng dấu phẩy (,), từ nối
+#    (và, nhưng, rồi, thì, mà), hoặc giữa một mệnh đề.
+# 3. Mỗi scene đọc riêng vẫn có nghĩa hoàn chỉnh — KHÔNG phụ thuộc scene trước/sau.
+# 4. Scene cuối mỗi chapter (is_chapter_end = true):
+#    → Tạo chapter_voice_block = nối TẤT CẢ voice_text trong chapter
+#    → chapter_voice_block phải đọc liền mạch, tự nhiên như 1 đoạn văn
+# 5. Scene chuyển chapter → PHẢI có "transition beat" (nhịp chuyển cảnh rõ ràng).
+# 6. word_count = đếm SỐ TỪ THỰC TẾ trong voice_text (space-separated).
+# 7. sentence_complete = true cho MỌI scene. Nếu = false → output bị REJECT.
+#
+# VÍ DỤ ĐÚNG (2 scene liên tiếp, mỗi scene là câu hoàn chỉnh):
+#   Scene 1: "Ngày xưa, ở một ngôi làng nhỏ, có một cô bé mồ côi tên là Tấm."
+#   Scene 2: "Nàng sống cùng mẹ kế và cô em gái Cám, chịu nhiều bất công."
+#   → Đọc liền: tự nhiên, mạch lạc, không bị cắt.
+#
+# VÍ DỤ SAI (bị cắt giữa câu):
+#   Scene 1: "Ngày xưa, ở một ngôi làng nhỏ, có một cô bé mồ côi tên là Tấm, nàng"
+#   Scene 2: "sống cùng mẹ kế và cô em gái Cám..."
+#   → BỊ CẮT giữa câu! REJECT!
 
 # ==================================================================================
 # 👑 MASTER COMMAND V18.0: VOICE LOCK — THIẾT QUÂN LUẬT THANH ÂM

@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import type { TabId } from './data/constants';
 import { loadApiConfig, getValidKeyCount, hasAnyApiKey } from './services/aiService';
+import { getCurrentLicense } from './services/licenseService';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import ApiKeyModal from './components/ApiKeyModal';
+import LicenseGate from './components/LicenseGate';
 import ToastContainer from './components/Toast';
 import SpyModule from './pages/SpyModule';
 import ScriptModule from './pages/ScriptModule';
 import StudioModule from './pages/StudioModule';
 import SeoModule from './pages/SeoModule';
+import AdminModule from './pages/AdminModule';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('spy');
@@ -17,11 +20,14 @@ const App: React.FC = () => {
   const [keyCount, setKeyCount] = useState(0);
   const [scriptSegments, setScriptSegments] = useState<any[]>([]);
   const [strategyTopic, setStrategyTopic] = useState('');
+  const [licensed, setLicensed] = useState(false);
 
   useEffect(() => {
     loadApiConfig();
     setKeyCount(getValidKeyCount());
-    if (!hasAnyApiKey()) setShowConfig(true);
+    // Check license on load
+    const lic = getCurrentLicense();
+    setLicensed(lic.valid);
   }, []);
 
   const handleConfigClose = () => {
@@ -39,7 +45,22 @@ const App: React.FC = () => {
     setActiveTab('script');
   };
 
-  // ⭐ Bước 7.2: Render ALL modules, use display:none to preserve state
+  const handleLicenseActivated = () => {
+    setLicensed(true);
+    if (!hasAnyApiKey()) setShowConfig(true);
+  };
+
+  // === LICENSE GATE — Block access if not licensed (admin tab always accessible) ===
+  if (!licensed && activeTab !== 'admin') {
+    return (
+      <>
+        <LicenseGate onActivated={handleLicenseActivated} />
+        <ToastContainer />
+      </>
+    );
+  }
+
+  // ⭐ Render ALL modules, use display:none to preserve state
   return (
     <div className="min-h-screen flex flex-col">
       <Header
@@ -67,6 +88,9 @@ const App: React.FC = () => {
           </div>
           <div style={{ display: activeTab === 'seo' ? 'block' : 'none' }}>
             <SeoModule initialTopic={strategyTopic} />
+          </div>
+          <div style={{ display: activeTab === 'admin' ? 'block' : 'none' }}>
+            <AdminModule />
           </div>
         </div>
       </main>

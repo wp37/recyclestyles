@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { callAI } from '../services/aiService';
 import { SYSTEM_PROMPT_SCRIPT_WRITER } from '../data/prompts';
-import { TARGET_MARKETS, VISUAL_STYLES, SECONDS_PER_SCENE } from '../data/constants';
+import { TARGET_MARKETS, VISUAL_STYLES, SECONDS_PER_SCENE, STORY_STRUCTURE, VOICE_CONFIG, calculateChapterAllocation } from '../data/constants';
 import { showToast } from '../components/Toast';
 
 // ==================================================================================
@@ -50,6 +50,11 @@ const ScriptModule: React.FC<Props> = ({ onScriptGenerated, initialTopic = '' })
   const words = Math.floor(duration * mode.wpm);
   const modeColor = duration < 3 ? 'text-green-400 border-green-500/50 bg-green-900/10' : duration <= 10 ? 'text-teal-400 border-teal-500/50 bg-teal-900/10' : 'text-purple-400 border-purple-500/50 bg-purple-900/10';
 
+  // === CHAPTER ALLOCATION CALCULATOR ===
+  const chapterAlloc = React.useMemo(() => calculateChapterAllocation(scenes), [scenes]);
+  const totalVoiceWords = scenes * VOICE_CONFIG.AVG_WORDS_PER_SCENE;
+  const totalVoiceSec = Math.round(totalVoiceWords / VOICE_CONFIG.SPEAKING_RATE_VN);
+
   // === AI STYLE SUGGESTION — Brain Core ===
   const handleSuggestStyle = async () => {
     if (!topic) return showToast('Nhập chủ đề trước!');
@@ -72,7 +77,8 @@ const ScriptModule: React.FC<Props> = ({ onScriptGenerated, initialTopic = '' })
     try {
       const styleObj = VISUAL_STYLES.find(s => s.id === style);
       const mk = TARGET_MARKETS[market] || TARGET_MARKETS['vn_recycle'];
-      const prompt = `TOPIC: "${topic}"\nDURATION: ${duration}m\nSCENE_COUNT: ${scenes}\nTARGET_LANGUAGE: ${mk.voice_lang}\nTARGET_MARKET: ${mk.name}\nVISUAL_STYLE: ${styleObj?.name || 'Auto'}\nRESPOND ALL TEXT FIELDS IN VIETNAMESE.\nGENERATE JSON OBJECT.`;
+      const chapterInfo = Object.entries(chapterAlloc).map(([k, v]) => `${k}: ${v} scenes`).join(', ');
+      const prompt = `TOPIC: "${topic}"\nDURATION: ${duration}m\nSCENE_COUNT: ${scenes}\nSECONDS_PER_SCENE: ${SECONDS_PER_SCENE}\nTARGET_LANGUAGE: ${mk.voice_lang}\nTARGET_MARKET: ${mk.name}\nVISUAL_STYLE: ${styleObj?.name || 'Auto'}\nCHAPTER_ALLOCATION: ${chapterInfo}\nVOICE_BUDGET: Max ${VOICE_CONFIG.MAX_WORDS_PER_SCENE} words/scene, avg ${VOICE_CONFIG.AVG_WORDS_PER_SCENE} words/scene\nANTI-CUT RULE: Mỗi voice_text PHẢI là câu HOÀN CHỈNH kết thúc bằng dấu chấm (.) — KHÔNG cắt giữa câu.\nRESPOND ALL TEXT FIELDS IN VIETNAMESE.\nGENERATE JSON OBJECT.`;
       const json = await callAI(prompt, SYSTEM_PROMPT_SCRIPT_WRITER);
       let segs = json.script || (Array.isArray(json) ? json : []);
       let enforce = '';
@@ -162,7 +168,46 @@ const ScriptModule: React.FC<Props> = ({ onScriptGenerated, initialTopic = '' })
             </div>
           </div>
           <div className={`border rounded-xl p-4 transition-all ${modeColor}`}>
-            <div className="font-bold">{mode.name}</div>
+            <div className="font-bold mb-3">{mode.name}</div>
+            {/* === VIDEO CLIP CALCULATOR === */}
+            <div className="bg-black/30 rounded-lg p-3 space-y-2">
+              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-300 uppercase">
+                <i className="fa-solid fa-calculator text-cyan-400" /> VIDEO CLIP CALCULATOR
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+                <div className="bg-black/40 rounded p-2 border border-white/5">
+                  <div className="text-slate-500">Tổng clip</div>
+                  <div className="text-lg font-black text-white">{scenes}</div>
+                  <div className="text-slate-500">× {SECONDS_PER_SCENE}s</div>
+                </div>
+                <div className="bg-black/40 rounded p-2 border border-white/5">
+                  <div className="text-slate-500">Voice ước tính</div>
+                  <div className="text-lg font-black text-teal-400">~{totalVoiceWords}</div>
+                  <div className="text-slate-500">từ ({totalVoiceSec}s)</div>
+                </div>
+                <div className="bg-black/40 rounded p-2 border border-white/5">
+                  <div className="text-slate-500">Budget/clip</div>
+                  <div className="text-lg font-black text-amber-400">≤{VOICE_CONFIG.MAX_WORDS_PER_SCENE}</div>
+                  <div className="text-slate-500">từ/cảnh</div>
+                </div>
+              </div>
+              {/* Chapter Allocation Table */}
+              <div className="space-y-1 pt-1">
+                <div className="text-[9px] text-slate-500 font-bold uppercase">Phân bổ chapter:</div>
+                {Object.entries(STORY_STRUCTURE).map(([key, cfg]) => {
+                  const count = chapterAlloc[key] || 0;
+                  const wordsRange = `${count * VOICE_CONFIG.AVG_WORDS_PER_SCENE}-${count * VOICE_CONFIG.MAX_WORDS_PER_SCENE}`;
+                  return (
+                    <div key={key} className={`flex items-center gap-2 text-[10px] px-2 py-1 rounded bg-black/20 border ${cfg.borderColor}`}>
+                      <span className={`font-bold ${cfg.color} w-28 truncate`}>{cfg.label}</span>
+                      <span className="text-white font-bold w-14 text-center">{count} clip</span>
+                      <span className="text-slate-500 flex-1 truncate">~{wordsRange} từ</span>
+                      <span className="text-slate-600">{count * SECONDS_PER_SCENE}s</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
           <div className="bg-[#151515] border border-white/5 rounded-xl p-4">
             <label className="text-xs font-bold text-slate-400 uppercase mb-2 block flex items-center gap-2"><i className="fa-solid fa-palette text-emerald-400" /> PHONG CÁCH VẬT LIỆU TÁI CHẾ</label>
@@ -184,66 +229,124 @@ const ScriptModule: React.FC<Props> = ({ onScriptGenerated, initialTopic = '' })
       </div>
 
       {/* Script Results */}
-      {segments.length > 0 && (
+      {segments.length > 0 && (() => {
+        // Group segments by chapter
+        const voiceText = (s: any) => s.chapter_voice_block || s.voice_text || '';
+        const wordCount = (s: any) => voiceText(s).split(/\s+/).filter(Boolean).length;
+        const isComplete = (s: any) => {
+          const t = voiceText(s).trim();
+          return t.endsWith('.') || t.endsWith('...') || t.endsWith('!') || t.endsWith('?');
+        };
+        const flowIssues = segments.filter(s => !isComplete(s)).length;
+        let lastChapter = '';
+
+        return (
         <div className="space-y-4 pb-10">
-          <div className="flex justify-between items-center px-2">
-            <div className="text-xs text-slate-500 font-bold">Đã tạo: {segments.length} phân đoạn</div>
+          <div className="flex justify-between items-center px-2 flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <div className="text-xs text-slate-500 font-bold">Đã tạo: {segments.length} phân đoạn</div>
+              {flowIssues > 0 && (
+                <div className="text-[10px] font-bold px-2 py-1 rounded bg-red-900/20 border border-red-500/30 text-red-400 flex items-center gap-1">
+                  <i className="fa-solid fa-triangle-exclamation" /> {flowIssues} scene chưa hoàn chỉnh câu
+                </div>
+              )}
+              {flowIssues === 0 && (
+                <div className="text-[10px] font-bold px-2 py-1 rounded bg-green-900/20 border border-green-500/30 text-green-400 flex items-center gap-1">
+                  <i className="fa-solid fa-check-circle" /> Story flow OK
+                </div>
+              )}
+            </div>
             <button onClick={copyAll} className="text-xs font-bold px-3 py-1.5 rounded flex items-center gap-2 bg-white text-black hover:bg-slate-200"><i className="fa-solid fa-copy" /> Copy Voice Toàn Bộ</button>
           </div>
-          {segments.map((seg, idx) => (
-            <div key={idx} className="bg-[#0f0f11] border border-white/10 p-4 rounded-xl flex flex-col sm:flex-row gap-4 hover:border-teal-500/30 transition-colors relative">
-              <div className="w-full sm:w-28 shrink-0 text-center pt-1 border-r border-white/5 pr-2">
-                <div className="text-[10px] bg-[#1a1a1a] px-2 py-1 rounded font-bold text-white mb-1">SCENE {seg.scene_number || idx + 1}</div>
-                <div className="text-[9px] text-slate-500 font-mono mb-1">{seg.time}</div>
-                <div className="text-[9px] text-teal-400 font-bold uppercase break-words mb-1">{seg.section}</div>
-                {seg.beat && <div className="text-[9px] text-purple-400 font-bold uppercase">{seg.beat}</div>}
-                {seg.dialogue_intent && (
-                  <div className={`text-[9px] font-bold mt-1 px-1.5 py-0.5 rounded-full inline-block ${
-                    seg.dialogue_intent === 'silent' ? 'bg-slate-800 text-slate-400' :
-                    seg.dialogue_intent === 'low' ? 'bg-amber-900/30 text-amber-300 border border-amber-500/20' :
-                    'bg-emerald-900/30 text-emerald-300 border border-emerald-500/20'
-                  }`}>
-                    {seg.dialogue_intent === 'silent' ? '🔇' : seg.dialogue_intent === 'low' ? '🔉' : '🔊'} {seg.dialogue_intent}
+          {segments.map((seg, idx) => {
+            const wc = wordCount(seg);
+            const complete = isComplete(seg);
+            const overBudget = wc > VOICE_CONFIG.MAX_WORDS_PER_SCENE;
+            const chapter = seg.chapter || seg.section || '';
+            const showChapterHeader = chapter && chapter !== lastChapter;
+            if (showChapterHeader) lastChapter = chapter;
+            const chapterCfg = STORY_STRUCTURE[chapter] || null;
+
+            return (
+            <React.Fragment key={idx}>
+              {/* Chapter Header */}
+              {showChapterHeader && (
+                <div className={`flex items-center gap-3 px-3 py-2 rounded-lg border bg-black/30 ${chapterCfg?.borderColor || 'border-white/10'}`}>
+                  <span className={`font-bold text-sm ${chapterCfg?.color || 'text-white'}`}>{chapterCfg?.label || chapter}</span>
+                  <span className="text-[10px] text-slate-500">{chapterCfg?.desc || ''}</span>
+                  {chapterAlloc[chapter] && <span className="text-[10px] text-slate-600 ml-auto">{chapterAlloc[chapter]} clips</span>}
+                </div>
+              )}
+              <div className={`bg-[#0f0f11] border p-4 rounded-xl flex flex-col sm:flex-row gap-4 transition-colors relative ${!complete ? 'border-red-500/30 hover:border-red-500/50' : 'border-white/10 hover:border-teal-500/30'}`}>
+                <div className="w-full sm:w-32 shrink-0 text-center pt-1 border-r border-white/5 pr-2">
+                  <div className="text-[10px] bg-[#1a1a1a] px-2 py-1 rounded font-bold text-white mb-1">SCENE {seg.scene_number || idx + 1}</div>
+                  <div className="text-[9px] text-slate-500 font-mono mb-1">{seg.time}</div>
+                  <div className="text-[9px] text-teal-400 font-bold uppercase break-words mb-1">{seg.section}</div>
+                  {seg.beat && <div className="text-[9px] text-purple-400 font-bold uppercase">{seg.beat}</div>}
+                  {/* Word Count Badge */}
+                  <div className={`text-[9px] font-bold mt-1.5 px-1.5 py-0.5 rounded inline-block ${overBudget ? 'bg-red-900/30 text-red-400 border border-red-500/20' : 'bg-slate-800 text-slate-400'}`}>
+                    📝 {wc}/{VOICE_CONFIG.MAX_WORDS_PER_SCENE} từ
                   </div>
-                )}
-              </div>
-              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-[#151515]/50 p-3 rounded border border-white/5">
-                  <div className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 mb-1"><i className="fa-solid fa-eye" /> VISUAL</div>
-                  <p className="text-xs text-slate-300 mb-2">{seg.visual_desc_vi || seg.visual_desc}</p>
-                  {seg.strategy_note && <div className="mt-2 p-2 rounded bg-amber-900/10 border border-amber-500/20 text-[10px] text-amber-200/80 italic">💡 {seg.strategy_note}</div>}
-                  {seg.continuity_note && (
-                    <div className="mt-2 p-2 rounded bg-cyan-900/10 border border-cyan-500/20">
-                      <div className="text-[10px] text-cyan-400 font-bold flex items-center gap-1 mb-1"><i className="fa-solid fa-link" /> CONTINUITY</div>
-                      <p className="text-[10px] text-slate-400 leading-relaxed">{seg.continuity_note}</p>
+                  {/* Sentence Status */}
+                  <div className={`text-[9px] font-bold mt-1 px-1.5 py-0.5 rounded inline-block ${complete ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400'}`}>
+                    {complete ? '✅ Câu hoàn chỉnh' : '⚠️ Chưa kết thúc'}
+                  </div>
+                  {seg.dialogue_intent && (
+                    <div className={`text-[9px] font-bold mt-1 px-1.5 py-0.5 rounded-full inline-block ${
+                      seg.dialogue_intent === 'silent' ? 'bg-slate-800 text-slate-400' :
+                      seg.dialogue_intent === 'low' ? 'bg-amber-900/30 text-amber-300 border border-amber-500/20' :
+                      'bg-emerald-900/30 text-emerald-300 border border-emerald-500/20'
+                    }`}>
+                      {seg.dialogue_intent === 'silent' ? '🔇' : seg.dialogue_intent === 'low' ? '🔉' : '🔊'} {seg.dialogue_intent}
                     </div>
                   )}
                 </div>
-                <div className="bg-[#151515]/50 p-3 rounded border border-white/5">
-                  <div className="flex justify-between items-center mb-1">
-                    <div className="text-[10px] text-teal-400 font-bold flex items-center gap-1"><i className="fa-solid fa-microphone-alt" /> VOICE</div>
-                    <button onClick={() => { navigator.clipboard.writeText(seg.voice_text || ''); showToast('✅ Copied!', 'success'); }} className="text-slate-500 hover:text-white"><i className="fa-regular fa-copy" /></button>
-                  </div>
-                  <p className="text-sm text-emerald-100 font-medium italic leading-relaxed text-justify">"{seg.chapter_voice_block || seg.voice_text || '(Đọc tiếp...)'}"</p>
-                  {/* 🎙️ AUDIO PROFILE — Voice Lock V16.0 */}
-                  {seg.audio && (
-                    <div className="mt-2 p-2 rounded bg-violet-900/10 border border-violet-500/20">
-                      <div className="text-[10px] text-violet-400 font-bold flex items-center gap-1 mb-1.5"><i className="fa-solid fa-waveform-lines" /> AUDIO PROFILE</div>
-                      <div className="grid grid-cols-2 gap-1 text-[9px]">
-                        <div><span className="text-slate-500">Speaker:</span> <span className="text-violet-300 font-bold">{seg.audio.speaker}</span></div>
-                        <div><span className="text-slate-500">State:</span> <span className={`font-bold ${seg.audio.state === 'ON-SCREEN' ? 'text-green-400' : 'text-amber-400'}`}>{seg.audio.state}</span></div>
-                        <div className="col-span-2"><span className="text-slate-500">Timbre:</span> <span className="text-slate-300">{seg.audio.timbre}</span></div>
-                        <div><span className="text-slate-500">Tone:</span> <span className="text-slate-300">{seg.audio.tone}</span></div>
-                        <div><span className="text-slate-500">Pacing:</span> <span className="text-slate-300">{seg.audio.pacing}</span></div>
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-[#151515]/50 p-3 rounded border border-white/5">
+                    <div className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 mb-1"><i className="fa-solid fa-eye" /> VISUAL</div>
+                    <p className="text-xs text-slate-300 mb-2">{seg.visual_desc_vi || seg.visual_desc}</p>
+                    {seg.strategy_note && <div className="mt-2 p-2 rounded bg-amber-900/10 border border-amber-500/20 text-[10px] text-amber-200/80 italic">💡 {seg.strategy_note}</div>}
+                    {seg.continuity_note && (
+                      <div className="mt-2 p-2 rounded bg-cyan-900/10 border border-cyan-500/20">
+                        <div className="text-[10px] text-cyan-400 font-bold flex items-center gap-1 mb-1"><i className="fa-solid fa-link" /> CONTINUITY</div>
+                        <p className="text-[10px] text-slate-400 leading-relaxed">{seg.continuity_note}</p>
                       </div>
+                    )}
+                  </div>
+                  <div className="bg-[#151515]/50 p-3 rounded border border-white/5">
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="text-[10px] text-teal-400 font-bold flex items-center gap-1"><i className="fa-solid fa-microphone-alt" /> VOICE</div>
+                      <button onClick={() => { navigator.clipboard.writeText(seg.voice_text || ''); showToast('✅ Copied!', 'success'); }} className="text-slate-500 hover:text-white"><i className="fa-regular fa-copy" /></button>
                     </div>
-                  )}
+                    <p className="text-sm text-emerald-100 font-medium italic leading-relaxed text-justify">"{seg.voice_text || '(Đọc tiếp...)'}"</p>
+                    {/* Chapter Voice Block — only at chapter end */}
+                    {seg.chapter_voice_block && seg.is_chapter_end && (
+                      <div className="mt-2 p-2 rounded bg-teal-900/10 border border-teal-500/20">
+                        <div className="text-[10px] text-teal-400 font-bold flex items-center gap-1 mb-1"><i className="fa-solid fa-paragraph" /> CHAPTER VOICE BLOCK</div>
+                        <p className="text-[10px] text-teal-200/80 leading-relaxed italic text-justify">"{seg.chapter_voice_block}"</p>
+                      </div>
+                    )}
+                    {seg.audio && (
+                      <div className="mt-2 p-2 rounded bg-violet-900/10 border border-violet-500/20">
+                        <div className="text-[10px] text-violet-400 font-bold flex items-center gap-1 mb-1.5"><i className="fa-solid fa-waveform-lines" /> AUDIO PROFILE</div>
+                        <div className="grid grid-cols-2 gap-1 text-[9px]">
+                          <div><span className="text-slate-500">Speaker:</span> <span className="text-violet-300 font-bold">{seg.audio.speaker}</span></div>
+                          <div><span className="text-slate-500">State:</span> <span className={`font-bold ${seg.audio.state === 'ON-SCREEN' ? 'text-green-400' : 'text-amber-400'}`}>{seg.audio.state}</span></div>
+                          <div className="col-span-2"><span className="text-slate-500">Timbre:</span> <span className="text-slate-300">{seg.audio.timbre}</span></div>
+                          <div><span className="text-slate-500">Tone:</span> <span className="text-slate-300">{seg.audio.tone}</span></div>
+                          <div><span className="text-slate-500">Pacing:</span> <span className="text-slate-300">{seg.audio.pacing}</span></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            </React.Fragment>
+            );
+          })}
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

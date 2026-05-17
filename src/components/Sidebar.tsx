@@ -12,6 +12,7 @@ const TABS: { id: TabId; icon: string; title: string; subtitle: string }[] = [
   { id: 'script', icon: 'fa-solid fa-scroll', title: '2. STORY WEAVER', subtitle: 'Viết Kịch Bản Cổ Tích' },
   { id: 'studio', icon: 'fa-solid fa-palette', title: '3. CRAFT STUDIO', subtitle: 'Xưởng Sáng Tạo' },
   { id: 'seo', icon: 'fa-solid fa-seedling', title: '4. ECO SEO', subtitle: 'Tối Ưu Viral' },
+  { id: 'admin', icon: 'fa-solid fa-shield-halved', title: '⚙️ ADMIN', subtitle: 'Quản Lý License' },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, hasScriptData }) => {

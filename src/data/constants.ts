@@ -71,7 +71,59 @@ export const SEO_CHECKLIST_DATA: Record<string, { id: string; label: string }[]>
 
 export const SECONDS_PER_SCENE = 8;
 
-export type TabId = 'spy' | 'script' | 'studio' | 'seo' | 'market';
+// ==================================================================================
+// 📖 STORY STRUCTURE — Chapter Allocation (% of total scenes)
+// Đảm bảo câu chuyện mạch lạc, không bị cắt giữa chừng
+// ==================================================================================
+export interface ChapterConfig {
+  pct: number;
+  label: string;
+  color: string;
+  borderColor: string;
+  desc: string;
+}
+
+export const STORY_STRUCTURE: Record<string, ChapterConfig> = {
+  HOOK:       { pct: 0.10, label: '🎣 MỞ ĐẦU', color: 'text-amber-400', borderColor: 'border-amber-500/30', desc: 'Hook — Thu hút ngay 3 giây đầu' },
+  RISING:     { pct: 0.25, label: '📈 PHÁT TRIỂN', color: 'text-emerald-400', borderColor: 'border-emerald-500/30', desc: 'Rising Action — Xây dựng nhân vật & bối cảnh' },
+  CLIMAX:     { pct: 0.15, label: '⚡ CAO TRÀO', color: 'text-red-400', borderColor: 'border-red-500/30', desc: 'Climax — Xung đột chính, đỉnh điểm' },
+  FALLING:    { pct: 0.20, label: '📉 HẠ NHIỆT', color: 'text-purple-400', borderColor: 'border-purple-500/30', desc: 'Falling Action — Giải quyết xung đột' },
+  RESOLUTION: { pct: 0.15, label: '🏆 KẾT THÚC', color: 'text-teal-400', borderColor: 'border-teal-500/30', desc: 'Resolution — Bài học, kết thúc truyện' },
+  CTA:        { pct: 0.15, label: '📢 KÊU GỌI', color: 'text-pink-400', borderColor: 'border-pink-500/30', desc: 'CTA — Eco-message, kêu gọi hành động' },
+};
+
+// ==================================================================================
+// 🎙️ VOICE CONFIG — Voice Budget per 8-second scene
+// ==================================================================================
+export const VOICE_CONFIG = {
+  MAX_WORDS_PER_SCENE: 25,         // ≤25 từ / 8s (hard limit)
+  AVG_WORDS_PER_SCENE: 18,         // ~18 từ cho tự nhiên
+  SPEAKING_RATE_VN: 3.0,           // ~3 từ/giây tiếng Việt
+  BUFFER_SECONDS: 0.5,             // 0.5s đệm chuyển cảnh
+  SAFE_DURATION_PER_SCENE: 7.5,    // 8s - 0.5s buffer
+};
+
+// Helper: Calculate chapter allocation for given total scenes
+export function calculateChapterAllocation(totalScenes: number): Record<string, number> {
+  const chapters = Object.entries(STORY_STRUCTURE);
+  const allocation: Record<string, number> = {};
+  let assigned = 0;
+
+  chapters.forEach(([key, cfg], idx) => {
+    if (idx === chapters.length - 1) {
+      // Last chapter gets remaining scenes
+      allocation[key] = Math.max(1, totalScenes - assigned);
+    } else {
+      const count = Math.max(1, Math.round(totalScenes * cfg.pct));
+      allocation[key] = count;
+      assigned += count;
+    }
+  });
+
+  return allocation;
+}
+
+export type TabId = 'spy' | 'script' | 'studio' | 'seo' | 'market' | 'admin';
 
 export const TAB_COLORS: Record<TabId, { bg: string; border: string; text: string; shadow: string }> = {
   spy: { bg: 'bg-[#0a1f15]', border: 'border-emerald-500/50', text: 'text-emerald-400', shadow: 'shadow-[0_0_15px_rgba(16,185,129,0.15)]' },
@@ -79,4 +131,5 @@ export const TAB_COLORS: Record<TabId, { bg: string; border: string; text: strin
   studio: { bg: 'bg-[#1f1a0f]', border: 'border-amber-500/50', text: 'text-amber-300', shadow: 'shadow-[0_0_15px_rgba(245,158,11,0.15)]' },
   seo: { bg: 'bg-[#0f1f20]', border: 'border-cyan-500/50', text: 'text-cyan-300', shadow: 'shadow-[0_0_15px_rgba(6,182,212,0.15)]' },
   market: { bg: 'bg-[#1f0f1a]', border: 'border-pink-500/50', text: 'text-pink-300', shadow: 'shadow-[0_0_15px_rgba(236,72,153,0.15)]' },
+  admin: { bg: 'bg-[#1f0a0a]', border: 'border-red-500/50', text: 'text-red-300', shadow: 'shadow-[0_0_15px_rgba(239,68,68,0.15)]' },
 };
